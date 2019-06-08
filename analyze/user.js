@@ -1,6 +1,6 @@
 const getTweets = require('../fetching/get-tweets');
 const getTickers = require('../helpers/get-tickers');
-const analyzeRec = require('../helpers/analyze-rec');
+const analyzeRec = require('./recommendation');
 const getDateStr = require('../helpers/get-datestr');
 const { avg } = require('../helpers/array-math');
 

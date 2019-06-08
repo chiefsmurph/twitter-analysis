@@ -1,4 +1,4 @@
-const analyze = require('./analyze');
+const analyze = require('./user');
 const usersOfInterest = [
   'magicmiketrader',
   'SniperTradesOTC',
