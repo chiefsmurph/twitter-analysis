@@ -14,3 +14,5 @@ const promiseMapLimit = require('promise-map-limit');
 Array.prototype.asyncMap = function(limit, asyncFn) {
   return promiseMapLimit(this, limit, asyncFn);
 };
+
+global.cTable = require('console.table');
