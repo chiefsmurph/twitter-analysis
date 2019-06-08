@@ -4,9 +4,7 @@ const { avg } = require('../helpers/array-math');
 
 const { mapObject } = require('underscore');
 
-const MAX_DAYS_TO_CONSIDER = 7;
-
-module.exports = async (ticker, date) => {
+module.exports = async (ticker, date, daysToConsider = 10) => {
 
   console.log('analyzing rec', ticker, 'on', date);
 
@@ -21,7 +19,7 @@ module.exports = async (ticker, date) => {
 
     const followingDays = historicals.filter(hist => 
       new Date(hist.date).getTime() > new Date(date).getTime()
-    ).slice(0, MAX_DAYS_TO_CONSIDER);
+    ).slice(0, daysToConsider);
   
     // important prices
 
@@ -49,12 +47,16 @@ module.exports = async (ticker, date) => {
         low,
         allCloses
       },
-      perfs: mapObject({
-        trendToHigh,
-        trendToLow,
-        highMinusLow,
-        trendToCloses
-      }, n => +n.toFixed(2))
+      perfs: {
+        ...mapObject({
+          trendToHigh,
+          trendToLow,
+          highMinusLow,
+          trendToCloses,
+        }, n => +n.toFixed(2)),
+        percHit20Up: Boolean(trendToHigh >= 20),
+        percHit30Up: Boolean(trendToHigh >= 30),
+      }
     };
   } catch (e) {
     return null;

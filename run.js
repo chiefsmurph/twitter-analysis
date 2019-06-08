@@ -19,7 +19,7 @@ require('./helpers/my-js');
   const toRun = args.shift();
   // init
   // await require('./helpers/browser').init();
-  const folders = ['app-actions', 'cli', 'singles', 'scraping-actions'];
+  const folders = ['analyze', 'fetching', 'helpers'];
   const getFile = file => {
     for (let folder of folders) {
       try {

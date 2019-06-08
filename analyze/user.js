@@ -4,20 +4,34 @@ const analyzeRec = require('./recommendation');
 const getDateStr = require('../helpers/get-datestr');
 const { avg } = require('../helpers/array-math');
 
-const { uniq } = require('underscore');
+const { uniq, omit, pick } = require('underscore');
 
-const MIN_DAY_AGE = 9;
+const MS_IN_DAY = 1000 * 60 * 60 * 24;
+const MIN_DAY_AGE = 7;
+const MAX_DAY_AGE = 30;
+const MAX_DAYS_TO_CONSIDER = 5;
 
-module.exports = async (username, count = 120) => {
+module.exports = async (
+  username,
+  minDayAge = MIN_DAY_AGE,
+  maxDayAge = MAX_DAY_AGE,
+  maxDaysToConsider = MAX_DAYS_TO_CONSIDER
+) => {
 
-  console.log('analyze', { username });
-  const response = await getTweets(username, 1000);
-  if (!response) return {};
-  const { data } = response;
+  console.log('analyzing twitter user', {
+    username,
+    minDayAge,
+    maxDayAge,
+    maxDaysToConsider
+  });
+  const tweets = await getTweets(username, maxDayAge);
+  if (!tweets) return null;
   // console.log(response);
 
-  const oldTweets = data.filter(
-    hist => new Date(hist.created_at) < Date.now() - 1000 * 60 * 60 * 24 * MIN_DAY_AGE
+  
+  const oldTweets = tweets.filter(
+    hist => new Date(hist.created_at) < Date.now() - MS_IN_DAY * minDayAge
+      && new Date(hist.created_at) > Date.now() - MS_IN_DAY * maxDayAge
   );
 
   const withTickers = oldTweets.map(obj => ({
@@ -27,63 +41,69 @@ module.exports = async (username, count = 120) => {
     text: obj.text,
     tickers: getTickers(obj.text, true)
   }));
-  withTickers.reverse();
 
-  // strlog({withTickers})
-  
-  if (!withTickers.length) {
-    return null;
-  }
-  const sliced = withTickers
-    .filter(tweet => tweet.tickers.length === 1)
-    .slice(0, count);
+  const tickerDates = withTickers
+    .filter(obj => obj.tickers.length === 1)  // only tweets recommending exactly one ticker
+    .reduce((acc, obj) => [
+      ...acc,
+      {
+        ticker: obj.tickers[0],
+        ...pick(obj, 'dateStr')
+      }
+    ], []);
+
+  const uniqTickerDates = uniq( // combine multiple tweets for the same ticker on the same day
+    tickerDates,
+    ({ ticker, dateStr }) => [ticker, dateStr].join(',')
+  );
+
+  if (!uniqTickerDates.length) return null;
+
+  // strlog(uniqTickerDates)
+
   strlog({
-    withTickers: withTickers.length,
-    sliced: sliced.length
+    tweets: tweets.length,
+    oldTweets: oldTweets.length,
+    uniqTickerDates: uniqTickerDates.length,
   });
 
 
-  const tweetsAnalyzed = await sliced.asyncMap(1, async obj => {
+  const recsAnalyzed = await uniqTickerDates.asyncMap(1, async obj => {
     await new Promise(resolve => setTimeout(resolve, 3));
     return {
       ...obj,
-      tickers: (await obj.tickers.asyncMap(1, async ticker => ({
-        ticker,
-        analysis: await analyzeRec(ticker, obj.createdAt)
-      }))).filter(ticker => ticker.analysis)
+      analysis: await analyzeRec(obj.ticker, obj.dateStr, maxDaysToConsider)
     };
   });
-
-  // strlog({tweetsAnalyzed})
-  const tickersAnalyzed = tweetsAnalyzed.reduce((acc, tweet) => [
-    ...acc,
-    ...tweet.tickers.map(ticker => ({
-      ticker: ticker.ticker,
-      dateStr: tweet.dateStr,
-      ...ticker.analysis.perfs,
-      ...ticker.analysis.prices,
-    }))
-  ], []);
-
-
-  const uniqTickAndDates = uniq(tickersAnalyzed, ticker => 
-    [ticker.ticker, ticker.dateStr].join()
-  ).filter(ticker => ticker.trendToHigh < 350);
-
-  // strlog({uniqTickAndDates});
-
-  console.table(uniqTickAndDates);
-
-  const perfKeys = Object.keys(tweetsAnalyzed[0].tickers[0].analysis.perfs);
+  // strlog({recsAnalyzed})
   
-  const overallPerfAnalysis = perfKeys.reduce((acc, key) => ({
-    ...acc,
+  const onlyQuality = recsAnalyzed
+    .filter(rec => rec.analysis)
+    .filter(rec => rec.analysis.prices.buyPrice >= .0005);
+
+  if (!onlyQuality.length) return null;
+
+  const tickersAnalyzed = onlyQuality.map(rec => ({
+    ...omit(rec, 'analysis'),
+    ...rec.analysis.perfs,
+    ...rec.analysis.prices
+  }));
+
+  console.table(tickersAnalyzed);
+
+  const perfKeys = Object.keys(onlyQuality[0].analysis.perfs);
+
+  const overallAnalysis = perfKeys.reduce((acc, key) => ({
     [key]: avg(
-      uniqTickAndDates.map(perf => perf[key])
-    )
+      tickersAnalyzed.map(perf => perf[key])
+    ),
+    ...acc,
   }), {});
 
-  strlog({ overallPerfAnalysis });
+  strlog({ overallAnalysis });
 
-  return overallPerfAnalysis;
+  return {
+    overallAnalysis,
+    tickersAnalyzed
+  };
 };
