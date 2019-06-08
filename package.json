@@ -6,6 +6,7 @@
   "author": "pawnjefferson <pawnjefferson@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "promise-map-limit": "^1.0.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "twitter-promise": "^1.2.0"

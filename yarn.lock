@@ -223,6 +223,11 @@ performance-now@^2.1.0:
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
 
+promise-map-limit@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/promise-map-limit/-/promise-map-limit-1.0.0.tgz#ee8e7f306e1547b0a0ec59f881d4e990f6506d64"
+  integrity sha1-7o5/MG4VR7Cg7Fn4gdTpkPZQbWQ=
+
 psl@^1.1.24, psl@^1.1.28:
   version "1.1.32"
   resolved "https://registry.yarnpkg.com/psl/-/psl-1.1.32.tgz#3f132717cf2f9c169724b2b6caf373cf694198db"
