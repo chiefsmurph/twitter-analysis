@@ -42,13 +42,29 @@ const usersOfInterest = [
     "SexySexysamir",
     "robertmendoza22",
     "New_Era_Trading",
-    "notoriousmurph"
+    "notoriousmurph",
+    'OnceBrokeMama',
+    'greatstockpicks',
+    'Percy34453450',
+    'JoyfulTrades',
+    'KD11201',
+    'mrpenny12',
+    'swingtradejunky',
+    'NedBillsen',
+    'lovepennies1',
+    'Vestor7',
+    'OTCstocksDoc',
+    'TommyLingo313',
+    'sally37045980',
+    'mikethewazowski',
+    'GregStockett',
+    'JediJazz22',
 ];
 
 // const MS_IN_DAY = 1000 * 60 * 60 * 24;
-const MIN_DAY_AGE = 7;
-const MAX_DAY_AGE = 30;
-const MAX_DAYS_TO_CONSIDER = 5;
+const MIN_DAY_AGE = 20;
+const MAX_DAY_AGE = 50;
+const MAX_DAYS_TO_CONSIDER = 10;
 
 module.exports = async (
   minDayAge = MIN_DAY_AGE,
@@ -56,9 +72,11 @@ module.exports = async (
   maxDaysToConsider = MAX_DAYS_TO_CONSIDER
 ) => {
 
-  console.log(`considering tweets between ${minDayAge} and ${maxDayAge} days old`);
-  console.log(`...and then seeing how those stock picks performed if you were to buy at open the following day`)
-  console.log(`...and hold for a maximum of ${maxDaysToConsider} days.`);
+  console.log('analyzing multiple twitter users', {
+    minDayAge,
+    maxDayAge,
+    maxDaysToConsider
+  });
 
   let allTickerDates = [];
   const analyzed = await usersOfInterest.asyncMap(1, async username => {
@@ -89,13 +107,18 @@ module.exports = async (
     
   });
 
-  const sorted = analyzed.sort((a, b) => b.trendToHigh - a.trendToHigh);
+  
+
+  console.log(`considering tweets between ${minDayAge} and ${maxDayAge} days old`);
+  console.log(`...and then seeing how those stock picks performed if you were to buy at open the following day`)
+  console.log(`...and hold for a maximum of ${maxDaysToConsider} days.\n`);
+
+  const sorted = analyzed
+    .filter(({ tickersRecommended }) => tickersRecommended > 0)
+    .sort((a, b) => b.trendToHigh - a.trendToHigh);
+
   console.table(sorted);
   strlog(sorted);
-
-
-
-
   
   const withMultipleRecs = allTickerDates.filter(tickerDate => {
     const filtered = allTickerDates.filter(td => {

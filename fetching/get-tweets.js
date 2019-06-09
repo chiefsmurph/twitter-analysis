@@ -9,13 +9,7 @@ const fetchTweets = async params => {
   try {
     const response = await tw.get({
       path: "statuses/user_timeline",
-      params: { 
-        ...params,
-        exclude_replies: true,
-        // include_rts: false,
-        trim_user: true,
-        count: 200
-      }
+      params
     });
     return response;
   } catch (e) {
@@ -26,7 +20,6 @@ const fetchTweets = async params => {
 
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
 module.exports = async (username, daysBack = 20) => {
-
 
   let lastTweetId;
   let tweets = [];
@@ -40,12 +33,20 @@ module.exports = async (username, daysBack = 20) => {
     console.log(`fetching page ${n} of tweets`);
     const response = await fetchTweets({
       screen_name: username,
-      max_id: lastTweetId
+      max_id: lastTweetId,
+      count: 200,
+      exclude_replies: true,
+      // include_rts: false,
+      trim_user: true,
     });
     if (!response) {
       return null;
     }
+    // console.log(response);
     const { data } = response;
+    if (!data || data.length <= 1) {
+      return tweets;
+    }
     // strlog(data);
     await new Promise(resolve => setTimeout(resolve, 100));
     lastTweetId = data[data.length - 1].id;

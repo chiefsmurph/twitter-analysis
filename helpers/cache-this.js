@@ -11,7 +11,7 @@ const cacheThis = (asyncFn, minRefresh = 20) => {
             if (minDiff > minRefresh) {
                 console.log('time to refresh cache', minDiff, 'minutes since last refresh', strArgs);
             } else {
-                console.log('getting from cache', strArgs);
+                // console.log('getting from cache', strArgs);
                 return value;
             }
         }
