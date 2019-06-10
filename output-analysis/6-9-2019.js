@@ -23,48 +23,21 @@ module.exports = () => {
   };
 
   const statKeys = ['trendToHigh', 'highMinusLow', 'trendToCloses', 'percHit20Up', 'percHit30Up'];
-  const getStats = subset => statKeys.reduce((acc, key) => ({
-    ...acc,
-    [key]: avg(subset.map(result => result[key]))
-  }), {
-    uniqCount: subset.length,
-    limit20Playout: (() => {
-      const playouts = subset.map(
-        result => limitPlayout(result.allCloses, 20)
-      );
-      // strlog(playouts)
-      return avg(
-        playouts
-      );
-    })(),
-    limit30Playout: (() => {
-      const playouts = subset.map(
-        result => limitPlayout(result.allCloses, 30)
-      );
-      // strlog(playouts)
-      return avg(
-        playouts
-      );
-    })(),
-    limit60Playout: (() => {
-      const playouts = subset.map(
-        result => limitPlayout(result.allCloses, 60)
-      );
-      // strlog(playouts)
-      return avg(
-        playouts
-      );
-    })(),
-    limit100Playout: (() => {
-      const playouts = subset.map(
-        result => limitPlayout(result.allCloses, 100)
-      );
-      // strlog(playouts)
-      return avg(
-        playouts
-      );
-    })()
-  });
+  const getStats = subset => 
+    statKeys.reduce((acc, key) => ({
+      ...acc,
+      [key]: avg(subset.map(result => result[key]))
+    }), {
+      uniqCount: subset.length,
+      ...[20, 30, 60, 100].reduce((acc, limit) => ({
+        ...acc,
+        [`limit${limit}Playout`]: avg(
+          subset.map(
+            result => limitPlayout(result.allCloses, 20)
+          )
+        )
+      }), {})
+    });
 
 
   const top12users = [
@@ -109,9 +82,6 @@ module.exports = () => {
   // console.log(getStats(json));
 
 
-
-
-
   response.customSubsets = Object.keys(subsets).reduce((acc, key) => ({
     ...acc,
     [key]: getStats(
@@ -123,18 +93,32 @@ module.exports = () => {
 
 
   // console.log('--------------------------');
+  
+  const newSubset = (
+    collection,
+    filterFn,
+    skipCountFilter
+  ) => {
+    return collection
+      .map(obj => ({
+        ...obj,
+        stats: getStats(
+          json.filter(rec => 
+            filterFn(rec, obj)
+          )
+        )
+      }))
+      .filter(({ stats }) => skipCountFilter || stats.uniqCount > 5)
+      .sort((a, b) => b.stats.trendToHigh - a.stats.trendToHigh);
+  }
 
   // BY USERNAME
   const allUsernames = uniq(json.map(result => result.usernames).flatten());
-  response.byUsername = allUsernames.map(username => ({
-    username,
-    stats: getStats(
-      json.filter(result => 
-        result.usernames.includes(username)
-      )
-    )
-  })).sort((a, b) => b.stats.trendToHigh - a.stats.trendToHigh);
-
+  response.byUsername = newSubset(
+    allUsernames.map(username => ({ username })),
+    (rec, { username }) => rec.usernames.includes(username),
+    true  // skip uniqCount filter
+  );
 
   // BY USERNAME PERMUTATIONS
   const allPerms = [];
@@ -144,20 +128,13 @@ module.exports = () => {
   };
   [2, 3].forEach(addNum);
   // console.log(allPerms);
-
-  const usernamePerms = allPerms.map(usernamePerm => ({
-    usernamePerm,
-    stats: getStats(
-      json.filter(result =>
-        usernamePerm.every(username => 
-          result.usernames.includes(username)
-        )
+  response.usernamePerms = newSubset(
+    allPerms.map(usernamePerm => ({ usernamePerm })),
+    (rec, { usernamePerm }) => 
+      usernamePerm.every(username => 
+        rec.usernames.includes(username)
       )
-    )
-  })).filter(({ stats }) => stats.uniqCount > 5)
-  .sort((a, b) => b.stats.trendToHigh - a.stats.trendToHigh);
-  response.usernamePerms = usernamePerms;
-
+  );
 
 
   
@@ -165,19 +142,10 @@ module.exports = () => {
 
 
   const tickers = uniq(json, 'ticker').map(result => result.ticker);
-  // const byTickerCount = mapObject(byTicker, arr => arr.length);
-  // strlog(tickers);
-
-  response.byTicker = tickers.map(ticker => ({
-    ticker,
-    stats: getStats(
-      json.filter(result =>
-        result.ticker === ticker
-      )
-    )
-  })).filter(({ stats }) => stats.uniqCount > 5)
-  .sort((a, b) => b.stats.trendToHigh - a.stats.trendToHigh);
-
+  response.byTicker = newSubset(
+    tickers.map(ticker => ({ ticker })),
+    (rec, { ticker }) => rec.ticker === ticker
+  );
 
   return response;
 };
