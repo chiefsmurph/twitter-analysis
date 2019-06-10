@@ -1,70 +1,11 @@
+const { omit, uniq } = require('underscore');
+const usersOfInterest = require('../users-of-interest');
 const analyzeUser = require('./user');
-const usersOfInterest = [
-  'magicmiketrader',
-  'SniperTradesOTC',
-  'i_like_bb_stock',
-  'friends23134',
-  'stockguru2020',
-  'KickoStocks',
-  'DomBuckz',
-  'aaaamhim',
-  'stock_hacker',
-  'GoldMemberOTC',
-  'OCDrises',
-  'WishfulTH1NKin',
-  'OCMillionaire',
-  'i_am_andrew84',
-  'TradeNeverMarry',
-  'Jcazz17',
-  'ShortSqueezed1',
-  'stockballa',
-
-
-  
-    "gaslitwit",
-    "dlz2355",
-    "thewarshark",
-    "crazyholdemdave",
-    "bnp3116",
-    "MarketRider76",
-    "kreegs_23",
-    "Shabanng",
-    "zee4130",
-    "Bark0Lounger",
-    "jared_genest",
-    "GeneLyons14",
-    "Fitz10061",
-    "face_goose",
-    "I_Am_Ram_OTC",
-    "StoxUs",
-    "PennySlapper",
-    "BinDaddys",
-    "SexySexysamir",
-    "robertmendoza22",
-    "New_Era_Trading",
-    "notoriousmurph",
-    'OnceBrokeMama',
-    'greatstockpicks',
-    'Percy34453450',
-    'JoyfulTrades',
-    'KD11201',
-    'mrpenny12',
-    'swingtradejunky',
-    'NedBillsen',
-    'lovepennies1',
-    'Vestor7',
-    'OTCstocksDoc',
-    'TommyLingo313',
-    'sally37045980',
-    'mikethewazowski',
-    'GregStockett',
-    'JediJazz22',
-];
 
 // const MS_IN_DAY = 1000 * 60 * 60 * 24;
 const MIN_DAY_AGE = 20;
 const MAX_DAY_AGE = 50;
-const MAX_DAYS_TO_CONSIDER = 10;
+const MAX_DAYS_TO_CONSIDER = 6;
 
 module.exports = async (
   minDayAge = MIN_DAY_AGE,
@@ -149,4 +90,27 @@ module.exports = async (
     );
     console.log('\n');
   });
+
+
+  console.log("\n");
+  console.log("\n");
+
+  strlog(allTickerDates)
+
+  console.log("\n");
+  console.log("\n");
+
+  const uniqPicks = uniq(allTickerDates, result => 
+    [result.ticker, result.dateStr].join(',')
+  );
+
+  const withUsernames = uniqPicks.map(result => ({
+    ...omit(result, 'username'),
+    usernames: allTickerDates.filter(r => 
+      r.ticker === result.ticker && r.dateStr === result.dateStr
+    ).map(r => r.username)
+  }));
+  
+  strlog(withUsernames);
+  
 };

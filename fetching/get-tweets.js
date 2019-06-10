@@ -4,6 +4,8 @@ const { twitter: credentials } = require('../config');
 const tw = new Twitter(credentials);
 
 
+const getDateStr = require('../helpers/get-datestr');
+const getTickers = require('../helpers/get-tickers');
 
 const fetchTweets = async params => {
   try {
@@ -20,7 +22,7 @@ const fetchTweets = async params => {
 
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
 module.exports = async (username, daysBack = 20) => {
-
+  console.log(`getting tweets for ${username}`);
   let lastTweetId;
   let tweets = [];
 
@@ -58,8 +60,17 @@ module.exports = async (username, daysBack = 20) => {
   }
 
   tweets.reverse();
-  return tweets.filter(tweet => 
-    new Date(tweet.created_at).getTime() >= new Date().getTime() - MS_IN_DAY * daysBack
-  );
+
+  return tweets
+    .map(obj => ({
+      createdAt: new Date(obj.created_at),
+      dateStr: getDateStr(obj.created_at),
+      id: obj.id,
+      text: obj.text,
+      tickers: getTickers(obj.text, true)
+    }))
+    .filter(tweet => 
+      tweet.createdAt >= new Date().getTime() - MS_IN_DAY * daysBack
+    );
   
 };

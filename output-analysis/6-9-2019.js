@@ -6,24 +6,11 @@ const Combinatorics = require('js-combinatorics');
 
 module.exports = () => {
 
+  const response = {};
+
+  
   json = json.filter(r => r.ticker !== 'LEAS');
 
-  const uniqPicks = uniq(json, result => 
-    [result.ticker, result.dateStr].join(',')
-  );
-  console.log({
-    json: json.length,
-    uniqPicks: uniqPicks.length
-  });
-
-  const withUsernames = uniqPicks.map(result => ({
-    ...omit(result, 'username'),
-    usernames: json.filter(r => 
-      r.ticker === result.ticker && r.dateStr === result.dateStr
-    ).map(r => r.username)
-  }));
-
-  strlog(withUsernames)
   const limitPlayout = (closes, limit = 20) => {
     // console.log({ closes })
     for (let n of closes) {
@@ -103,9 +90,9 @@ module.exports = () => {
     everyTop12: result => result.usernames.every(username => top12users.includes(username)),
     someTop12: result => result.usernames.some(username => top12users.includes(username)),
     top12MultipleRecs: (result, index, arr) => {
-      const top12 = result.usernames.every(username => top12users.includes(username));
-      const multiple = result.usernames.length == 3;
-      return top12 && multiple;
+      // const top12 = result.usernames.every(username => top12users.includes(username));
+      const multiple = result.usernames.length === 6;
+      return multiple;
     },
     top12SingleRec: (result, index, arr) => {
       const top12 = result.usernames.every(username => top12users.includes(username));
@@ -115,54 +102,61 @@ module.exports = () => {
     
   };
 
+
+
+
   // console.log(json);
-  console.log(getStats(withUsernames));
+  // console.log(getStats(json));
 
 
-  Object.keys(subsets).forEach(key => {
-    const filterFn = subsets[key];
-    const filtered = withUsernames.filter(filterFn);
-    // strlog(filtered);
-    console.log('SUBSET: ', key);
-    console.log(getStats(filtered));
-    if (key !== 'all') {
-      // strlog(filtered)
-    }
-  });
 
 
-  console.log('--------------------------');
+
+  response.customSubsets = Object.keys(subsets).reduce((acc, key) => ({
+    ...acc,
+    [key]: getStats(
+      json.filter(
+        rec => subsets[key](rec)
+      )
+    )
+  }), {});
+
+
+  // console.log('--------------------------');
+
+  // BY USERNAME
+  const allUsernames = uniq(json.map(result => result.usernames).flatten());
+  response.byUsername = allUsernames.map(username => ({
+    username,
+    stats: getStats(
+      json.filter(result => 
+        result.usernames.includes(username)
+      )
+    )
+  })).sort((a, b) => b.stats.trendToHigh - a.stats.trendToHigh);
 
 
   // BY USERNAME PERMUTATIONS
-  const allUsernames = uniq(withUsernames.map(result => result.usernames).flatten());
-  const allUserPerms = Combinatorics.power(allUsernames).filter(perm => perm.length);
-  console.log(allUserPerms);
+  const allPerms = [];
+  const addNum = num => {
+    cmb = Combinatorics.combination(allUsernames, num);
+    while (a = cmb.next()) allPerms.push(a);
+  };
+  [2, 3].forEach(addNum);
+  // console.log(allPerms);
 
-  allUserPerms.forEach(perm => {
-
-    const filtered = withUsernames.filter(result => {
-      // console.log(
-      //   result.usernames.sort().toString(),
-      //   perm.sort().toString()
-      // )
-      return perm.every(username => 
-        result.usernames.includes(username)
-      );
-    });
-
-    const stats = getStats(filtered);
-    if (
-      filtered.length <= 2 ||
-      // stats.limit30Playout < 120 ||
-      // stats.trendToHigh < 30 ||
-      stats.percHit20Up < 0.8 ||
-      stats.percHit30Up < 0.8
-    ) return;
-    console.log('SUBSET: ', perm);
-    console.log(stats);
-  });
-  console.log('--------------------------');
+  const usernamePerms = allPerms.map(usernamePerm => ({
+    usernamePerm,
+    stats: getStats(
+      json.filter(result =>
+        usernamePerm.every(username => 
+          result.usernames.includes(username)
+        )
+      )
+    )
+  })).filter(({ stats }) => stats.uniqCount > 5)
+  .sort((a, b) => b.stats.trendToHigh - a.stats.trendToHigh);
+  response.usernamePerms = usernamePerms;
 
 
 
@@ -170,27 +164,20 @@ module.exports = () => {
   // BY TICKER
 
 
-  const tickers = uniq(withUsernames, 'ticker').map(result => result.ticker);
+  const tickers = uniq(json, 'ticker').map(result => result.ticker);
   // const byTickerCount = mapObject(byTicker, arr => arr.length);
-  strlog(tickers);
+  // strlog(tickers);
+
+  response.byTicker = tickers.map(ticker => ({
+    ticker,
+    stats: getStats(
+      json.filter(result =>
+        result.ticker === ticker
+      )
+    )
+  })).filter(({ stats }) => stats.uniqCount > 5)
+  .sort((a, b) => b.stats.trendToHigh - a.stats.trendToHigh);
 
 
-  tickers.forEach(ticker => {
-    // console.log(ticker, 't');
-
-    const filtered = withUsernames.filter(result => {
-      return result.ticker === ticker
-    });
-    // console.log(withUsernames)
-    const stats = getStats(filtered);
-    if (
-      filtered.length <= 15
-      // stats.limit30Playout < 120 ||
-      // stats.trendToHigh < 30 ||
-      // stats.percHit20Up < 0.8 ||
-      // stats.percHit30Up < 0.8
-    ) return;
-    console.log('SUBSET: ', ticker);
-    console.log(stats);
-  });
+  return response;
 };

@@ -1,0 +1,116 @@
+[
+  {
+    "usernamePerm": [
+      "wolftradealerts",
+      "SniperTradesOTC"
+    ],
+    "stats": {
+      "uniqCount": 6,
+      "limit20Playout": 106.79,
+      "limit30Playout": 102.93,
+      "limit60Playout": 335.24,
+      "limit100Playout": 317.27,
+      "trendToHigh": 468.3,
+      "highMinusLow": 424.36,
+      "trendToCloses": 70.37,
+      "percHit20Up": 1,
+      "percHit30Up": 0.83
+    },
+    "todaysRecs": [
+      {
+        "ticker": "PTOP",
+        "usernames": [
+          "SniperTradesOTC",
+          "wolftradealerts"
+        ]
+      }
+    ]
+  },
+  {
+    "usernamePerm": [
+      "DomBuckz",
+      "i_am_andrew84"
+    ],
+    "stats": {
+      "uniqCount": 9,
+      "limit20Playout": 128.64,
+      "limit30Playout": 125.74,
+      "limit60Playout": 142.94,
+      "limit100Playout": 142.94,
+      "trendToHigh": 99.05,
+      "highMinusLow": 57.92,
+      "trendToCloses": 19.39,
+      "percHit20Up": 0.78,
+      "percHit30Up": 0.67
+    },
+    "todaysRecs": [
+      {
+        "ticker": "RHCO",
+        "usernames": [
+          "DomBuckz",
+          "i_am_andrew84",
+          "JoyfulTrades"
+        ]
+      }
+    ]
+  },
+  {
+    "usernamePerm": [
+      "StockPyf",
+      "greatstockpicks"
+    ],
+    "stats": {
+      "uniqCount": 7,
+      "limit20Playout": 130.48,
+      "limit30Playout": 134.05,
+      "limit60Playout": 139.28,
+      "limit100Playout": 113.4,
+      "trendToHigh": 63.11,
+      "highMinusLow": 40.84,
+      "trendToCloses": 8.94,
+      "percHit20Up": 0.57,
+      "percHit30Up": 0.57
+    },
+    "todaysRecs": [
+      {
+        "ticker": "FERN",
+        "usernames": [
+          "magicmiketrader",
+          "stockballa",
+          "greatstockpicks",
+          "TommyLingo313",
+          "StockPyf"
+        ]
+      }
+    ]
+  },
+  {
+    "usernamePerm": [
+      "wolftradealerts",
+      "i_am_andrew84"
+    ],
+    "stats": {
+      "uniqCount": 7,
+      "limit20Playout": 106.24,
+      "limit30Playout": 108.69,
+      "limit60Playout": 110.84,
+      "limit100Playout": 102.59,
+      "trendToHigh": 61.08,
+      "highMinusLow": 29.45,
+      "trendToCloses": 5.07,
+      "percHit20Up": 0.86,
+      "percHit30Up": 0.57
+    },
+    "todaysRecs": [
+      {
+        "ticker": "EXBX",
+        "usernames": [
+          "magicmiketrader",
+          "i_am_andrew84",
+          "wolftradealerts",
+          "StockPyf"
+        ]
+      }
+    ]
+  }
+]

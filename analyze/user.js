@@ -1,7 +1,5 @@
 const getTweets = require('../fetching/get-tweets');
-const getTickers = require('../helpers/get-tickers');
 const analyzeRec = require('./recommendation');
-const getDateStr = require('../helpers/get-datestr');
 const { avg } = require('../helpers/array-math');
 
 const { uniq, omit, pick } = require('underscore');
@@ -30,19 +28,13 @@ module.exports = async (
 
   
   const oldTweets = tweets.filter(
-    hist => new Date(hist.created_at) < Date.now() - MS_IN_DAY * minDayAge
-      && new Date(hist.created_at) > Date.now() - MS_IN_DAY * maxDayAge
+    tweet => tweet.createdAt < Date.now() - MS_IN_DAY * minDayAge
+      && tweet.createdAt > Date.now() - MS_IN_DAY * maxDayAge
   );
 
-  const withTickers = oldTweets.map(obj => ({
-    createdAt: new Date(obj.created_at),
-    dateStr: getDateStr(obj.created_at),
-    id: obj.id,
-    text: obj.text,
-    tickers: getTickers(obj.text, true)
-  }));
+  
 
-  const tickerDates = withTickers
+  const tickerDates = oldTweets
     .filter(obj => obj.tickers.length === 1)  // only tweets recommending exactly one ticker
     .reduce((acc, obj) => [
       ...acc,
