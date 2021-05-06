@@ -12,6 +12,6 @@
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "twitter-promise": "^1.2.0",
-    "underscore": "^1.9.1"
+    "underscore": "^1.12.1"
   }
 }
